@@ -41,6 +41,7 @@ class MainWindow:
         def get_all_then_update():
             get_all_surfaces()
             update_pie_chart()
+            self.frame_graphique.update_idletasks()
 
         '''TEST BUTTON'''
         # self.update_pie_button = Button(self.frame_graphique, text='Update Pie', command=get_all_then_update)
@@ -57,6 +58,51 @@ class MainWindow:
 
         self.frame_totaux_conteneur = LabelFrame(self.frame_totaux, pady=5, padx=5)
         self.frame_totaux_conteneur.grid(row=0, column=0, sticky='news', padx=self.general_padx, pady=self.general_pady)
+
+        self.typo_count = 1
+        self.typologies_row_count = 1
+
+        self.button_factice_1 = Button(self.frame_totaux_conteneur, text='+')
+        self.button_factice_1.grid(column=0, row=0, padx=self.general_padx, pady=self.general_pady)
+
+        self.button_factice_2 = Button(self.frame_totaux_conteneur, text='O')
+        self.button_factice_2.grid(column=1, row=0, padx=self.general_padx, pady=self.general_pady)
+
+        self.totaux_surfaces_var = DoubleVar()
+        self.label_totaux_surfaces = Label(self.frame_totaux_conteneur, textvariable=self.totaux_surfaces_var)
+        self.label_totaux_surfaces.grid(column=2, sticky='news', row=0, pady=self.general_pady, padx=self.general_padx)
+
+        self.label_units_surface_totale = Label(self.frame_totaux_conteneur, justify=CENTER, text='m²', relief='ridge')
+        self.label_units_surface_totale.grid(column=3, row=0, pady=5, padx=5, ipadx=5, ipady=5, sticky='news')
+
+        self.nombre_de_typologies = IntVar()
+        self.nombre_de_typologies.set(str(self.typo_count) + ' Typologie(s) actives')
+
+        self.label_nombre_de_typologies_totales = Label(self.frame_totaux_conteneur, justify=CENTER,
+                                                        textvariable=self.nombre_de_typologies, relief='groove')
+        self.label_nombre_de_typologies_totales.grid(column=4, row=0, sticky='news', pady=self.general_pady,
+                                                     padx=self.general_padx, ipadx=5)
+
+        '''TOTAL DES POURCENTAGES'''
+        self.label_litteral_totaux_pourcents = Label(self.frame_totaux_conteneur,text='Pourcentage Total :', relief='ridge')
+        self.label_litteral_totaux_pourcents.grid(column=5, sticky='news', row=0, pady=self.general_pady, padx=self.general_padx, ipadx=self.general_padx, ipady=self.general_pady)
+
+        self.totaux_percent_var = DoubleVar()
+        self.label_totaux_pourcents = Label(self.frame_totaux_conteneur, textvariable=self.totaux_percent_var, relief='groove')
+        self.label_totaux_pourcents.grid(column=6, sticky='news', row=0, pady=self.general_pady, padx=self.general_padx, ipadx=self.general_padx, ipady=self.general_pady)
+
+        '''SURFACE A PEUPLER'''
+
+        self.label_surface_a_peupler = Label(self.frame_totaux_conteneur, text='Surface à peupler :', justify=CENTER, pady=self.general_pady, padx=self.general_padx)
+        self.label_surface_a_peupler.grid(row=0, column=7)
+
+        self.surface_a_peupler_var = DoubleVar()
+        self.surface_a_peupler_var.set(100.0)
+        self.entry_surface_a_peupler = Entry(self.frame_totaux_conteneur, textvariable=self.surface_a_peupler_var, justify=CENTER)
+        self.entry_surface_a_peupler.grid(row=0, column=8, sticky='news')
+
+
+
 
         '''UPDATE DE LA TARTE'''
 
@@ -79,14 +125,14 @@ class MainWindow:
 
             '''DEFINITION DE LA NOUVELLE TARTE'''
 
-            axes.pie(new_sizes, labels=new_labels, radius=1.5, autopct='%1.1f%%', normalize=True,
+            axes.pie(new_sizes, labels=new_labels, radius=self.pie_radius, autopct='%1.1f%%', normalize=True,
                      shadow=False, colors=["#bce3e0", "#6bb4da", "#547cda", "#324e98", "#badad7"],
                      frame=False)
 
             '''Need to set up a color set, that can respond to any number of typologies. A base color being
             declined through iterative mathematics and RGB values '''
 
-            self.circle = plt.Circle((0, 0), 0.6, color='white', fc='white', linewidth=1.25)
+            self.circle = plt.Circle((0, 0), self.white_circle_radius, color='white', fc='white', linewidth=1.25)
             self.ax.add_artist(self.circle)
             canvas.draw()
             canvas.get_tk_widget().update_idletasks()
@@ -138,39 +184,12 @@ class MainWindow:
 
         # Création du graphique
 
-        self.typo_count = 1
-        self.typologies_row_count = 1
 
-        self.button_factice_1 = Button(self.frame_totaux_conteneur, text='+')
-        self.button_factice_1.grid(column=0, row=0, padx=self.general_padx, pady=self.general_pady)
 
-        self.button_factice_2 = Button(self.frame_totaux_conteneur, text='O')
-        self.button_factice_2.grid(column=1, row=0, padx=self.general_padx, pady=self.general_pady)
+        '''PREMIERE TARTE EN DUR'''
 
-        self.totaux_surfaces_var = DoubleVar()
-        self.label_totaux_surfaces = Label(self.frame_totaux_conteneur, textvariable=self.totaux_surfaces_var)
-        self.label_totaux_surfaces.grid(column=2, sticky='news', row=0, pady=self.general_pady, padx=self.general_padx)
-
-        self.label_units_surface_totale = Label(self.frame_totaux_conteneur, justify=CENTER, text='m²', relief='ridge')
-        self.label_units_surface_totale.grid(column=3, row=0, pady=5, padx=5, ipadx=5, ipady=5, sticky='news')
-
-        self.nombre_de_typologies = IntVar()
-        self.nombre_de_typologies.set(str(self.typo_count) + ' Typologie(s) actives')
-
-        self.label_nombre_de_typologies_totales = Label(self.frame_totaux_conteneur, justify=CENTER,
-                                                        textvariable=self.nombre_de_typologies, relief='groove')
-        self.label_nombre_de_typologies_totales.grid(column=4, row=0, sticky='news', pady=self.general_pady,
-                                                     padx=self.general_padx, ipadx=5)
-
-        '''TOTAL DES POURCENTAGES'''
-        self.label_litteral_totaux_pourcents = Label(self.frame_totaux_conteneur,text='Pourcentage Total', relief='ridge')
-        self.label_litteral_totaux_pourcents.grid(column=5, sticky='news', row=0, pady=self.general_pady, padx=self.general_padx, ipadx=self.general_padx, ipady=self.general_pady)
-
-        self.totaux_percent_var = DoubleVar()
-        self.label_totaux_pourcents = Label(self.frame_totaux_conteneur, textvariable=self.totaux_percent_var, relief='groove')
-        self.label_totaux_pourcents.grid(column=6, sticky='news', row=0, pady=self.general_pady, padx=self.general_padx, ipadx=self.general_padx, ipady=self.general_pady)
-
-        self.latest_frame = None
+        self.white_circle_radius = 0.3
+        self.pie_radius = 1.2
 
         self.fig = Figure()
         self.ax = self.fig.add_subplot(111, label='Axes')
@@ -178,18 +197,30 @@ class MainWindow:
         self.tailles_tourtes = get_all_surfaces()[3]
         self.labels_tourtes = get_all_surfaces()[4]
 
-        self.ax.pie(self.tailles_tourtes, radius=1.5, autopct='%1.1f%%', normalize=True,
+        self.ax.pie(self.tailles_tourtes, radius=self.pie_radius, autopct='%1.1f%%', normalize=True,
                     labels=self.labels_tourtes,
                     shadow=False, colors=["#bce3e0", "#6bb4da", "#547cda", "#324e98", "#badad7"],
                     frame=False)
 
-        self.circle = plt.Circle((0, 0), 0.6, color='white', fc='white', linewidth=1.25)
+        self.circle = plt.Circle((0, 0), self.white_circle_radius, color='white', fc='white', linewidth=1.25)
         self.ax.add_artist(self.circle)
 
         self.chart_1 = FigureCanvasTkAgg(self.fig, self.frame_graphique)
-        self.chart_1.get_tk_widget().pack(expand=True, fill=BOTH, side=TOP)
+        self.chart_1.get_tk_widget().pack(expand=True, fill=BOTH, side=TOP, padx=self.general_padx, pady=self.general_pady)
 
         self.chart_1.draw()
+
+        def update_alpha_from_slider_value(slider):
+            print(slider)
+            alpha_slider_value = self.slider_alpha.get()
+            print(self.slider_alpha.get())
+            self.root.attributes('-alpha', alpha_slider_value / 100)
+
+        self.slider_alpha = Scale(self.root, from_=25, to=100, orient=HORIZONTAL,
+                             command=update_alpha_from_slider_value,
+                             label="Opacité de l'interface (%)", borderwidth=0)
+        self.slider_alpha.set(100)
+        self.slider_alpha.grid(row=2, column=0, padx=10, pady=10, columnspan=7, sticky='news')
 
         def create_new_typo(islocked=False):
 
