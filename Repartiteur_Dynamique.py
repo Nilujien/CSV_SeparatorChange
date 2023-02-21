@@ -111,7 +111,7 @@ class MainWindow:
 
         self.surface_a_peupler_var = DoubleVar()
         self.surface_a_peupler_var.set(100.0)
-        # self.surface_a_peupler_var.trace_add('write', get_all_then_update())
+
         self.entry_surface_a_peupler = Entry(self.frame_totaux_conteneur, textvariable=self.surface_a_peupler_var,
                                              justify=CENTER)
         self.entry_surface_a_peupler.grid(row=0, column=8, sticky='news')
@@ -223,6 +223,8 @@ class MainWindow:
 
         # Création du graphique
 
+
+
         '''PREMIERE TARTE EN DUR'''
 
         self.white_circle_radius = 0.3
@@ -247,6 +249,8 @@ class MainWindow:
                                           pady=self.general_pady)
 
         self.chart_1.draw()
+
+        self.surface_a_peupler_var.trace_add('write', lambda x,y,z: get_all_then_update())
 
         def update_alpha_from_slider_value(slider):
             print(slider)
@@ -317,7 +321,7 @@ class MainWindow:
                                  padx=5,
                                  sticky='news')
 
-            typo_maximum_unitaire_label = Label(new_frame, text='Maximum \n unitaire :')
+            typo_maximum_unitaire_label = Label(new_frame, text="Maximum \n d'unités :")
             typo_maximum_unitaire_label.grid(row=self.typologies_row_count,
                                              column=6,
                                              pady=5,
