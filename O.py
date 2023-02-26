@@ -1,18 +1,21 @@
-import tkinter as tk
+from tkinter import *
+from PIL import ImageTk, Image
 
-root = tk.Tk()
+# Create an instance of tkinter window
+win = Tk()
 
-# Create a widget and set its name
-my_entry = tk.Entry(root, name='my_entry')
-my_entry.pack()
+# Define the geometry of the window
+win.geometry("700x500")
 
-# Create an IntVar() variable
-my_var = tk.IntVar()
+frame = Frame(win, width=600, height=400)
+frame.pack()
+frame.place(anchor='center', relx=0.5, rely=0.5)
 
-# Set the value of the IntVar() variable using the widget's name
-widget_obj = root.nametowidget('my_entry')
-widget_obj['textvariable'] = my_var
+# Create an object of tkinter ImageTk
+img = ImageTk.PhotoImage(Image.open("Aguiles_Logo.jpg"))
 
-my_var.set(42)  # Set the value of the IntVar()
+# Create a Label Widget to display the text or Image
+label = Label(frame, image = img)
+label.pack()
 
-root.mainloop()
+win.mainloop()
