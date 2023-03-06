@@ -10,6 +10,12 @@ from tkinter.colorchooser import askcolor
 from plyer import notification
 from PIL import ImageTk, Image
 
+import win32con
+import win32gui
+import ctypes
+import time
+import atexit
+
 
 # notification.notify(title='Titre', message='Message', timeout=100)
 
@@ -27,11 +33,25 @@ class App(Tk):
         texte_informatif = StringVar()
         texte_informatif.set("Survolez un élément pour en décrire les fonctions")
 
+        def resource_path(relative_path):
+            """ Get absolute path to resource, works for dev and for PyInstaller """
+            try:
+                # PyInstaller creates a temp folder and stores path in _MEIPASS
+                base_path = sys._MEIPASS
+            except Exception:
+                base_path = os.path.abspath(".")
+
+            return os.path.join(base_path, relative_path)
+
+
         self.frame_informative = LabelFrame(self, text="Informations")
         self.frame_informative.pack(fill=X, expand=True, padx=5, pady=5)
         self.frame_informative.columnconfigure(0, weight=1)
         self.frame_informative.rowconfigure(0, weight=1)
         self.frame_informative.pack()
+
+        self.cursor_file = 'Marquee_Crosshair.cur'
+        self.h_cursor = win32gui.LoadImage(0, self.cursor_file, win32con.IMAGE_CURSOR, 0, 0, win32con.LR_LOADFROMFILE)
 
         # Label informatif à usage général lors du survol d'un bouton ou d'un label
         self.label_informatif = Label(self.frame_informative, textvariable=texte_informatif, width=40, bg='lightblue')
@@ -77,15 +97,6 @@ class App(Tk):
 
         # fonction qui défini le réglage du carré de couleur indiquant la couleur pipettée
 
-        def resource_path(relative_path):
-            """ Get absolute path to resource, works for dev and for PyInstaller """
-            try:
-                # PyInstaller creates a temp folder and stores path in _MEIPASS
-                base_path = sys._MEIPASS
-            except Exception:
-                base_path = os.path.abspath(".")
-
-            return os.path.join(base_path, relative_path)
 
         '''Image de la pipette, chemin'''
 
@@ -94,6 +105,10 @@ class App(Tk):
         '''Image de la pipette'''
 
         self.pipette_logo_image = ImageTk.PhotoImage(Image.open(self.pipette_logo))
+
+        def change_label_to_copy_color(label_to_change, color, text_to_display):
+            label_to_change.config(bg=color)
+            texte_informatif.set(text_to_display)
 
         def change_label_color(pipette, color, text_to_display):
             pipette.config(bg=color)
@@ -190,6 +205,8 @@ class App(Tk):
         self.label_nombre_de_clics = Label(self.frame_nombre_de_clics, textvariable=self.variable_nombre_de_clics)
         self.label_nombre_de_clics.pack(fill=X, expand=True, padx=5, pady=5)
 
+        self.frame_nombre_de_clics.pack_forget()
+
         # frame des commandes
         self.frame_commands = LabelFrame(self, text='Commandes')
         self.frame_commands.pack(fill=X, expand=True, padx=5, pady=5)
@@ -218,6 +235,8 @@ class App(Tk):
                                                 command=lambda: reinitialize_clic_count(self.variable_nombre_de_clics))
         self.button_reinitialize_count.grid(padx=10, pady=10, sticky='nsew', columnspan=2)
 
+        self.frame_commands.pack_forget()
+
         # frame des Pipettes
         self.frame_colors = LabelFrame(self, text="Pipettes")
         self.frame_colors.pack(padx=5, pady=5, fill=X, expand=True)
@@ -241,12 +260,24 @@ class App(Tk):
 
         # label -- couleur A
 
-        def clic_color_button(button, legend):
-            choosen_color = askcolor(legend.cget('text'))
-            print(choosen_color)
-            print(button)
-            button.config(bg=choosen_color[1])
-            legend.config(text=choosen_color[1])
+        def clic_color_button(button, legend_hexa, legend_rgb):
+            clean_choosen_color = []
+            choosen_color = askcolor(legend_hexa.cget('text'))
+            try:
+
+                print(choosen_color)
+                print(type(choosen_color[0]))
+                print(button)
+                clean_choosen_color = choosen_color[0]
+                first_r = clean_choosen_color[0]
+                first_g = clean_choosen_color[1]
+                first_b = clean_choosen_color[2]
+                complete_rgb_string = str(first_r) + ', ' + str(first_g) + ', ' + str(first_b)
+                button.config(bg=choosen_color[1])
+                legend_hexa.config(text=choosen_color[1])
+                legend_rgb.config(text=complete_rgb_string)
+            except TypeError:
+                print('Bonjour')
 
         def clic_pipette_button(color_to_pipette, hexa_legend_to_update, pipette_to_update, rgb_legend_to_update):
 
@@ -284,37 +315,49 @@ class App(Tk):
 
         # Color A
 
-        self.label_couleur_A = Label(self.frame_color_1, relief='ridge', image=self.img_null, width=48, height=48,
+        self.label_couleur_A = Label(self.frame_color_1, relief='ridge', image=self.img_null, width=48, height=70,
                                      bg=self.couleur_A)
         self.label_couleur_A.grid(row=0, column=0, pady=5, padx=5, sticky='news')
 
         # Legende A
 
+        '''LABELS D'INFORMATIONS DE COULEURS -- RGB / HEXA'''
+
         self.legende_couleur_A = Label(self.frame_color_1, relief='ridge', image=self.img_null,
                                        bg='lightgrey', text='#bce3e0', compound=CENTER)
         self.legende_couleur_A.grid(row=1, column=0, pady=5, padx=5, sticky='news')
         self.legende_RGB_couleur_A = Label(self.frame_color_1, relief='ridge', image=self.img_null,
-                                       bg='lightgrey', text='188, 227, 224', compound=CENTER)
+                                           bg='lightgrey', text='188, 227, 224', compound=CENTER)
         self.legende_RGB_couleur_A.grid(row=2, column=0, pady=5, padx=5, sticky='news')
 
         # Pipette A
+
+        texte_informatif_de_base = "Survolez un élément pour en décrire les fonctions"
 
         self.pipette_couleur_A = Label(self.frame_color_1, relief='ridge', image=self.pipette_logo_image,
                                        bg='lightgrey', compound=CENTER)
         self.pipette_couleur_A.grid(row=3, column=0, pady=5, padx=5, sticky='news')
 
-
-        # Binding A
+        '''BINDING (A) LABELS'''
 
         self.legende_couleur_A.bind('<Button-1>', lambda label: copyclip_color(self.legende_couleur_A))
+        self.legende_RGB_couleur_A.bind('<Enter>', lambda e: change_label_to_copy_color(self.legende_RGB_couleur_A,'#b4d396', "Cliquez pour copier dans le presse-papier"))
+        self.legende_RGB_couleur_A.bind('<Leave>',
+                                        lambda e: change_label_to_copy_color(self.legende_RGB_couleur_A, 'lightgrey',
+                                                                             texte_informatif_de_base))
+        self.legende_RGB_couleur_A.bind('<Button-1>',
+                                  lambda button: copyclip_color(self.legende_RGB_couleur_A))
 
         self.pipette_couleur_A.bind('<Button-1>', lambda e: clic_pipette_button(self.label_couleur_A,
                                                                                 self.legende_couleur_A,
-                                                                                self.pipette_couleur_A, self.legende_RGB_couleur_A))
-        self.pipette_couleur_A.bind('<Enter>', lambda pipette: change_label_color(self.pipette_couleur_A, 'lightblue', "Cliquez-glissez sur l'écran pour pipetter"))
-        self.pipette_couleur_A.bind('<Leave>', lambda pipette: change_label_color(self.pipette_couleur_A, 'lightgrey', "Survolez un élément pour en décrire les fonctions"))
+                                                                                self.pipette_couleur_A,
+                                                                                self.legende_RGB_couleur_A))
+        self.pipette_couleur_A.bind('<Enter>', lambda pipette: change_label_color(self.pipette_couleur_A, 'lightblue',
+                                                                                  "Cliquez-glissez sur l'écran pour pipetter"))
+        self.pipette_couleur_A.bind('<Leave>', lambda pipette: change_label_color(self.pipette_couleur_A, 'lightgrey',
+                                                                                  texte_informatif_de_base))
         self.label_couleur_A.bind('<Button-1>',
-                                  lambda button: clic_color_button(self.label_couleur_A, self.legende_couleur_A))
+                                  lambda button: clic_color_button(self.label_couleur_A, self.legende_couleur_A, self.legende_RGB_couleur_A))
 
         # frame [] couleur B
 
@@ -324,7 +367,7 @@ class App(Tk):
 
         # label -- couleur B
 
-        self.label_couleur_B = Label(self.frame_color_2, relief='ridge', image=self.img_null, width=48, height=48,
+        self.label_couleur_B = Label(self.frame_color_2, relief='ridge', image=self.img_null, width=48, height=70,
                                      bg=self.couleur_B)
         self.label_couleur_B.grid(pady=5, padx=5, sticky='news')
 
@@ -334,7 +377,7 @@ class App(Tk):
                                        bg='lightgrey', text='#cfe3bc', compound=CENTER)
         self.legende_couleur_B.grid(row=1, column=0, pady=5, padx=5, sticky='news')
         self.legende_RGB_couleur_B = Label(self.frame_color_2, relief='ridge', image=self.img_null,
-                                       bg='lightgrey', text='207, 227, 188', compound=CENTER)
+                                           bg='lightgrey', text='207, 227, 188', compound=CENTER)
         self.legende_RGB_couleur_B.grid(row=2, column=0, pady=5, padx=5, sticky='news')
 
         def copyclip_color(label):
@@ -349,6 +392,11 @@ class App(Tk):
 
         self.legende_couleur_B.bind('<Button-1>', lambda label: copyclip_color(self.legende_couleur_B))
 
+        self.legende_RGB_couleur_B.bind('<Enter>', lambda e: change_label_to_copy_color(self.legende_RGB_couleur_B,'#b4d396', "Cliquez pour copier dans le presse-papier"))
+        self.legende_RGB_couleur_B.bind('<Leave>',
+                                        lambda e: change_label_to_copy_color(self.legende_RGB_couleur_B, 'lightgrey',
+                                                                             texte_informatif_de_base))
+
         # Pipette B
 
         self.pipette_couleur_B = Label(self.frame_color_2, relief='ridge', image=self.pipette_logo_image,
@@ -358,12 +406,15 @@ class App(Tk):
         # Binding B
 
         self.label_couleur_B.bind('<Button-1>',
-                                  lambda button: clic_color_button(self.label_couleur_B, self.legende_couleur_B))
+                                  lambda button: clic_color_button(self.label_couleur_B, self.legende_couleur_B, self.legende_RGB_couleur_B))
         self.pipette_couleur_B.bind('<Button-1>', lambda e: clic_pipette_button(self.label_couleur_B,
                                                                                 self.legende_couleur_B,
-                                                                                self.pipette_couleur_B, self.legende_RGB_couleur_B))
-        self.pipette_couleur_B.bind('<Enter>', lambda pipette: change_label_color(self.pipette_couleur_B, 'lightblue', "Cliquez-glissez sur l'écran pour pipetter"))
-        self.pipette_couleur_B.bind('<Leave>', lambda pipette: change_label_color(self.pipette_couleur_B, 'lightgrey', "Survolez un élément pour en décrire les fonctions"))
+                                                                                self.pipette_couleur_B,
+                                                                                self.legende_RGB_couleur_B))
+        self.pipette_couleur_B.bind('<Enter>', lambda pipette: change_label_color(self.pipette_couleur_B, 'lightblue',
+                                                                                  "Cliquez-glissez sur l'écran pour pipetter"))
+        self.pipette_couleur_B.bind('<Leave>', lambda pipette: change_label_color(self.pipette_couleur_B, 'lightgrey',
+                                                                                  "Survolez un élément pour en décrire les fonctions"))
 
         self.menu_test = Menu()
 
@@ -375,7 +426,7 @@ class App(Tk):
 
         # label -- couleur C
 
-        self.label_couleur_C = Label(self.frame_color_3, relief='ridge', image=self.img_null, width=48, height=48,
+        self.label_couleur_C = Label(self.frame_color_3, relief='ridge', image=self.img_null, width=48, height=70,
                                      bg=self.couleur_C)
         self.label_couleur_C.grid(pady=5, padx=5, sticky='news')
 
@@ -385,7 +436,7 @@ class App(Tk):
                                        bg='lightgrey', text='#e3bcbc', compound=CENTER)
         self.legende_couleur_C.grid(row=1, column=0, pady=5, padx=5, sticky='news')
         self.legende_RGB_couleur_C = Label(self.frame_color_3, relief='ridge', image=self.img_null,
-                                       bg='lightgrey', text='207, 227, 188', compound=CENTER)
+                                           bg='lightgrey', text='207, 227, 188', compound=CENTER)
         self.legende_RGB_couleur_C.grid(row=2, column=0, pady=5, padx=5, sticky='news')
 
         # Pipette C
@@ -399,12 +450,20 @@ class App(Tk):
         self.legende_couleur_C.bind('<Button-1>', lambda label: copyclip_color(self.legende_couleur_C))
 
         self.label_couleur_C.bind('<Button-1>',
-                                  lambda button: clic_color_button(self.label_couleur_C, self.legende_couleur_C))
+                                  lambda button: clic_color_button(self.label_couleur_C, self.legende_couleur_C, self.legende_RGB_couleur_C))
         self.pipette_couleur_C.bind('<Button-1>', lambda e: clic_pipette_button(self.label_couleur_C,
                                                                                 self.legende_couleur_C,
-                                                                                self.pipette_couleur_C, self.legende_RGB_couleur_C))
-        self.pipette_couleur_C.bind('<Enter>', lambda pipette: change_label_color(self.pipette_couleur_C, 'lightblue', "Cliquez-glissez sur l'écran pour pipetter"))
-        self.pipette_couleur_C.bind('<Leave>', lambda pipette: change_label_color(self.pipette_couleur_C, 'lightgrey', "Survolez un élément pour en décrire les fonctions"))
+                                                                                self.pipette_couleur_C,
+                                                                                self.legende_RGB_couleur_C))
+        self.pipette_couleur_C.bind('<Enter>', lambda pipette: change_label_color(self.pipette_couleur_C, 'lightblue',
+                                                                                  "Cliquez-glissez sur l'écran pour pipetter"))
+        self.pipette_couleur_C.bind('<Leave>', lambda pipette: change_label_color(self.pipette_couleur_C, 'lightgrey',
+                                                                                  "Survolez un élément pour en décrire les fonctions"))
+
+        self.legende_RGB_couleur_C.bind('<Enter>', lambda e: change_label_to_copy_color(self.legende_RGB_couleur_C,'#b4d396', "Cliquez pour copier dans le presse-papier"))
+        self.legende_RGB_couleur_C.bind('<Leave>',
+                                        lambda e: change_label_to_copy_color(self.legende_RGB_couleur_C, 'lightgrey',
+                                                                             texte_informatif_de_base))
         # Frame Options
 
         self.frame_options = LabelFrame(self, text='Options')
