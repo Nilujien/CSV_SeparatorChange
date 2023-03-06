@@ -8,7 +8,7 @@ a = Analysis(
     ['Repartiteur_Dynamique.py'],
     pathex=['C:\\users\\jcuartero\\PycharmProjects\\CSV_SeparatorChange\\venv\\Lib\\site-packages'],
     binaries=[],
-    datas=[],
+    datas=[('Aguiles_Logo.png', '.')],
     hiddenimports=['pywintypes'],
     hookspath=[],
     hooksconfig={},

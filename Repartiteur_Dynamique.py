@@ -1,4 +1,6 @@
 import math
+import os
+import sys
 from tkinter import *
 from tkinter import font
 
@@ -8,12 +10,24 @@ from matplotlib.figure import Figure
 from PIL import ImageTk, Image
 
 
-# noinspection PyTypeChecker
+# noinspection PyTypeChecker,PyProtectedMember
 class MainWindow:
 
     def __init__(self):
 
         """ATTRIBUTS GÉNÉRIQUES DE LA CLASSE MAIN WINDOW"""
+
+        def resource_path(relative_path):
+            """ Get absolute path to resource, works for dev and for PyInstaller """
+            try:
+                # PyInstaller creates a temp folder and stores path in _MEIPASS
+                base_path = sys._MEIPASS
+            except Exception:
+                base_path = os.path.abspath(".")
+
+            return os.path.join(base_path, relative_path)
+
+        Logo = resource_path("Aguiles_Logo.png")
 
         '''ROOT ET CONFIGURATION'''
 
@@ -40,12 +54,12 @@ class MainWindow:
         '''FRAME TYPOLOGIES'''
 
         self.frame_typologie = LabelFrame(self.root, text="Typologies")
-        self.frame_typologie.grid(row=1, column=0, sticky='news', padx=5, pady=5)
+        self.frame_typologie.grid(row=2, column=0, sticky='news', padx=5, pady=5)
 
         '''FRAME GRAPHIQUE MATPLOTLIB'''
 
         self.frame_graphique = LabelFrame(self.root, text='Graphique')
-        self.frame_graphique.grid(row=0, column=1, rowspan=2, sticky='news', padx=self.general_padx,
+        self.frame_graphique.grid(row=0, column=1, rowspan=3, sticky='news', padx=self.general_padx,
                                   pady=self.general_pady)
         self.frame_graphique.columnconfigure(0, weight=0)
 
@@ -55,20 +69,21 @@ class MainWindow:
                                            pady=self.general_pady)
         self.frame_graphique.columnconfigure(0, weight=0)
 
-        self.img = ImageTk.PhotoImage(Image.open("Aguiles_Logo.png"))
+        '''IMAGE DU LOGO (à passer en ressource dynamique)'''
+
+        self.img = ImageTk.PhotoImage(Image.open(Logo))
 
         '''FRAME LOGO'''
-        self.frame_logo = LabelFrame(self.root, text='Test')
-        self.frame_logo.grid(row=4, column=0, rowspan=8, columnspan=8, sticky='news')
+        self.frame_logo = LabelFrame(self.root, text='Logo')
+        self.frame_logo.grid(row=0, column=0, sticky='news', ipadx=self.general_padx, ipady=self.general_pady,
+                             padx=self.general_padx, pady=self.general_pady)
         self.label_logo_u = Label(self.frame_logo, image=self.img)
         self.label_logo_u.pack(side=LEFT, fill=BOTH)
-
 
         '''SELECT ALL IN ENTRY ON FOCUS'''
 
         def select_all_in_entry_on_focus(event):
             event.widget.select_range(0, 'end')
-
 
         '''SEQUENCE GET ALL THEN UPDATE'''
 
@@ -80,7 +95,7 @@ class MainWindow:
         '''FRAME TOTAUX'''
 
         self.frame_totaux = LabelFrame(self.root, text='Totaux')
-        self.frame_totaux.grid(row=0, column=0, sticky='news', pady=self.general_pady, padx=self.general_padx)
+        self.frame_totaux.grid(row=1, column=0, sticky='news', pady=self.general_pady, padx=self.general_padx)
         self.frame_totaux.columnconfigure(0, weight=1)
         self.frame_totaux.rowconfigure(0, weight=1)
 
@@ -105,7 +120,8 @@ class MainWindow:
         self.label_totaux_surfaces.grid(column=2, sticky='news', row=0, pady=self.general_pady, padx=self.general_padx)
 
         self.label_units_surface_totale = Label(self.frame_totaux_conteneur, justify=CENTER, text='m²', relief='ridge')
-        self.label_units_surface_totale.grid(column=3, row=0, pady=self.general_pady, padx=self.general_padx, ipadx=self.general_padx, ipady=self.general_pady, sticky='news')
+        self.label_units_surface_totale.grid(column=3, row=0, pady=self.general_pady, padx=self.general_padx,
+                                             ipadx=self.general_padx, ipady=self.general_pady, sticky='news')
 
         self.nombre_de_typologies = IntVar()
         self.nombre_de_typologies.set(str(self.typo_count) + ' Typologie(s) active(s)')
@@ -132,7 +148,8 @@ class MainWindow:
 
         self.label_surface_a_peupler = Label(self.frame_totaux_conteneur, text='Surface à peupler :', justify=CENTER,
                                              pady=self.general_pady, padx=self.general_padx)
-        self.label_surface_a_peupler.grid(row=0, column=7, sticky='news', ipady=self.general_pady, ipadx=self.general_padx)
+        self.label_surface_a_peupler.grid(row=0, column=7, sticky='news', ipady=self.general_pady,
+                                          ipadx=self.general_padx)
 
         self.surface_a_peupler_var = DoubleVar()
         self.surface_a_peupler_var.set(100.0)
@@ -150,7 +167,7 @@ class MainWindow:
         self.label_surface_totale_restante_view = Label(self.frame_totaux_conteneur, relief='ridge',
                                                         textvariable=self.surface_totale_non_allouee_var)
         self.label_surface_totale_restante_view.grid(row=0, column=10, sticky='news', ipadx=self.general_padx,
-                                                ipady=self.general_pady)
+                                                     ipady=self.general_pady)
 
         '''UPDATE DE LA TARTE'''
 
@@ -163,13 +180,13 @@ class MainWindow:
             new_units = obtain_all_data()[6] + ['']
 
             '''Nouveaux Labels'''
-            new_labels = obtain_all_data()[4] + ['Surface restante']
+            new_labels = obtain_all_data()[4] + ['Surface allouée restante']
             new_labels_renamed = []
 
             "Concaténation des infos de la légende"
             for ig, ug, og in zip(new_labels, new_sizes, new_units):
-                if ig == 'Surface restante':
-                    ig = ig + ' : ' + str(round(sum(obtain_all_data()[5]),2)) + ' (m²)'
+                if ig == 'Surface allouée restante':
+                    ig = ig + ' : ' + str(round(sum(obtain_all_data()[5]), 2)) + ' (m²)'
                     new_labels_renamed.append(ig)
                 else:
                     ig = ig + ' : ' + str(ug) + ' (m²) / ' + str(og) + ' (u)'
@@ -198,7 +215,7 @@ class MainWindow:
                 autotext.set_bbox({'facecolor': 'white', 'edgecolor': 'white', 'alpha': 0.7})
 
             '''Coloriage de la part restante en rouge pâle'''
-            label_to_color = {'Surface restante': '#e3bcbc'}
+            label_to_color = {'Surface allouée restante': '#e3bcbc'}
             for wedge, label in zip(wedges, new_labels):
                 if label in label_to_color:
                     wedge.set_facecolor(label_to_color[label])
@@ -211,7 +228,6 @@ class MainWindow:
 
             '''Need to set up a color set, that can respond to any number of typologies. A base color being
             declined through iterative mathematics and RGB values '''
-
 
             canvas.draw()
             canvas_legend.draw()
@@ -229,7 +245,6 @@ class MainWindow:
 
             widgets_values = []
             for grand_child in frames_values:
-
                 widgets_values.append(grand_child.winfo_children())
             '''Pré déclarations des différentes listes'''
             list_of_surfaces = []
@@ -239,6 +254,7 @@ class MainWindow:
             list_of_surfaces_restantes = []
             list_of_implanted_units_values = []
             list_of_surfaces_allouees_utilisees = []
+            list_of_surfaces_alloues = []
             for descendants in widgets_values:
                 max_units_var = IntVar()
                 surface_restante = DoubleVar()
@@ -247,9 +263,6 @@ class MainWindow:
                 surface_totale_allouee = DoubleVar()
                 implanted_units_var = IntVar()
                 selected_widget = descendants[2]
-
-
-
 
                 # list_of_max_units.append(int(selected_widget.nametowidget(descendants[6]).get()))
 
@@ -275,7 +288,6 @@ class MainWindow:
 
                 '''UPDATE UNITES MAX'''
 
-
                 max_units_var_label = selected_widget.nametowidget(descendants[6])
                 max_units_var_label['textvariable'] = max_units_var
                 max_units_var.set(
@@ -288,7 +300,9 @@ class MainWindow:
                 implanted_units_value = math.floor(
                     ((self.surface_a_peupler_var.get() * pourcentage_atteint) / 100) / surface_typo_atteinte)
                 implanted_units_var.set(implanted_units_value)
+
                 list_of_implanted_units_values.append(implanted_units_value)
+                list_of_surfaces_alloues.append(surface_totale_allouee_value)
 
                 try:
                     surface_modulo_restant_value = (
@@ -298,19 +312,19 @@ class MainWindow:
                 except ZeroDivisionError as e:
                     surface_modulo_restant_value = 0.0
 
-
                 '''SURFACES RESTANTES'''
 
-                '''Agrégation en liste des surfaces restantes'''
+                '''Agrégation en liste des surfaces restantes par typologies'''
                 list_of_surfaces_restantes.append(surface_modulo_restant_value)
                 '''Agrégation en liste des surfaces utilisées'''
                 list_of_surfaces_allouees_utilisees.append(surface_allouee_utilisee)
+
+                self.surface_totale_non_allouee_var.set(str(round(self.surface_a_peupler_var.get()-(self.surface_a_peupler_var.get()*sum(list_of_percents)/100),2)) + ' m²')
 
                 surface_restante_var_label = selected_widget.nametowidget(descendants[10])
                 surface_restante_var_label['textvariable'] = surface_restante
                 surface_restante.set(str(round(surface_modulo_restant_value, 2)) + ' | ' + str(
                     round(surface_totale_allouee_value, 2)) + " m²")
-
 
                 implanted_units_var_label['textvariable'] = implanted_units_var
 
@@ -318,7 +332,6 @@ class MainWindow:
 
             for surfaces in list_of_surfaces:
                 list_of_max_units.append(self.surface_a_peupler_var.get() / surfaces)
-
 
             self.totaux_percent_var.set(sum(list_of_percents))
             self.totaux_surfaces_var.set(round(sum(list_of_surfaces), 2))
@@ -346,10 +359,10 @@ class MainWindow:
 
             self.root.attributes('-alpha', alpha_slider_value / 100)
 
-        def on_enter_create_button(event):
+        def on_cursor_hovering_create_button(event):
             event.widget.config(bg='#cfe3bc')
 
-        def on_enter_delete_button(event, islocked):
+        def on_cursor_hovering_delete_button(event, islocked):
             if islocked:
                 event.widget.config(bg='#b4b4b4')
 
@@ -397,7 +410,7 @@ class MainWindow:
         self.slider_alpha = Scale(self.root, from_=25, to=100, orient=HORIZONTAL,
                                   command=update_alpha_from_slider_value, borderwidth=0)
         self.slider_alpha.set(100)
-        self.slider_alpha.grid(row=2, column=0, columnspan=7, sticky='news')
+        self.slider_alpha.grid(row=4, column=0, columnspan=7, sticky='news')
 
         ''' CREATION DE TYPOLOGIES ----- !'''
 
@@ -433,7 +446,7 @@ class MainWindow:
                                    column=0,
                                    pady=5,
                                    padx=5, sticky='news', ipadx=5)
-            new_create_button.bind('<Enter>', on_enter_create_button)
+            new_create_button.bind('<Enter>', on_cursor_hovering_create_button)
             new_create_button.bind('<Leave>', on_leave)
 
             '''DELETE BUTTON'''
@@ -443,7 +456,7 @@ class MainWindow:
                                        command=delete_typologie)
             new_delete_button.grid(row=self.typologies_row_count,
                                    column=1, sticky='news', pady=5, padx=5, ipadx=5)
-            new_delete_button.bind('<Enter>', lambda event: on_enter_delete_button(event, islocked=islocked))
+            new_delete_button.bind('<Enter>', lambda event: on_cursor_hovering_delete_button(event, islocked=islocked))
             new_delete_button.bind('<Leave>', on_leave)
 
             '''Si le widget est appelé locké, le bouton de suppression est désactivé'''
@@ -531,14 +544,14 @@ class MainWindow:
                 typo_slider_percent.set(new_value)
                 obtain_all_then_update()
 
-
             typo_name_entry.bind("<FocusIn>", select_all_in_entry_on_focus)
             typo_name_entry.bind("<Return>", test_trace)
             typo_surface_entry.bind("<FocusIn>", select_all_in_entry_on_focus)
             typo_surface_var.trace_add('write', lambda x, y, z: test_trace())
             typo_name_entry_string_var.trace_add('write', lambda x, y, z: test_trace())
 
-            typo_slider_percent = Scale(new_frame, from_=1.00, to=100.00, orient=HORIZONTAL, label="% de surface à peupler",
+            typo_slider_percent = Scale(new_frame, from_=1.00, to=100.00, orient=HORIZONTAL,
+                                        label="% de surface à peupler",
                                         length=150, digits=2, command=lambda e: obtain_all_data())
             typo_slider_percent.grid(row=self.typologies_row_count, column=5, padx=5, pady=5, sticky='news')
             typo_slider_percent.set(20.0)
@@ -551,7 +564,7 @@ class MainWindow:
             self.typologies_row_count += 1
             obtain_all_data()
             update_pie_chart()
-            self.frame_typologie.grid(row=1, column=0, sticky='news', padx=5, pady=5)
+            self.frame_typologie.grid(row=2, column=0, sticky='news', padx=5, pady=5)
             self.root.update()
 
         # self.button_get_all_surfaces_entry = Button(text='Get', command=obtain_all_data)
