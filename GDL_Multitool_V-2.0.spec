@@ -6,9 +6,9 @@ block_cipher = None
 
 a = Analysis(
     ['GDL_Multitool_V-2.0.py'],
-    pathex=['C:\\users\\jcuartero\\PycharmProjects\\CSV_SeparatorChange\\venv\\Lib\\site-packages'],
+    pathex=[],
     binaries=[],
-    datas=[('Pipette.png', '.')],
+    datas=[('Pipette.png', '.'), ('Pipette_vide.png', '.'), ('Pipette_MisClose.png', '.'), ('Dots.png', '.'), ('Dots_vides.png', '.'), ('GDL_Couteau_Suisse.ico', '.')],
     hiddenimports=['plyer.platforms.win.notification'],
     hookspath=[],
     hooksconfig={},
@@ -41,4 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['GDL_Couteau_Suisse.ico'],
 )
