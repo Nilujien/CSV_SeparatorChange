@@ -11,11 +11,11 @@ from PIL import ImageTk, Image
 
 
 # noinspection PyTypeChecker,PyProtectedMember
-class MainWindow:
+class RepartitorWindow:
 
     def __init__(self):
 
-        """ATTRIBUTS GÉNÉRIQUES DE LA CLASSE MAIN WINDOW"""
+        """ATTRIBUTS GÉNÉRIQUES DE LA CLASSE REPARTITOR WINDOW"""
 
         def resource_path(relative_path):
             """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -71,13 +71,14 @@ class MainWindow:
 
         '''IMAGE DU LOGO (à passer en ressource dynamique)'''
 
-        self.img = ImageTk.PhotoImage(Image.open(Logo))
+        self.img = ImageTk.PhotoImage(Image.open(Logo), master=self.root)
 
         '''FRAME LOGO'''
         self.frame_logo = LabelFrame(self.root, text='Logo')
         self.frame_logo.grid(row=0, column=0, sticky='news', ipadx=self.general_padx, ipady=self.general_pady,
                              padx=self.general_padx, pady=self.general_pady)
         self.label_logo_u = Label(self.frame_logo, image=self.img)
+        self.label_logo_u.image = self.img
         self.label_logo_u.pack(side=LEFT, fill=BOTH)
 
         '''SELECT ALL IN ENTRY ON FOCUS'''
@@ -176,17 +177,20 @@ class MainWindow:
             """OBTENTION DES NOUVELLES DONNES VIA GET ALL SURFACES"""
 
             '''Valeurs des tranches de la tourte'''
-            new_sizes = obtain_all_data()[7] + [sum(obtain_all_data()[5])]
-            new_units = obtain_all_data()[6] + ['']
+            new_sizes = obtain_all_data()[7] + [sum(obtain_all_data()[5])] + [obtain_all_data()[8]]
+            new_units = obtain_all_data()[6] + [''] + ['']
 
             '''Nouveaux Labels'''
-            new_labels = obtain_all_data()[4] + ['Surface allouée restante']
+            new_labels = obtain_all_data()[4] + ['Surface allouée restante'] + ['Surface non allouée']
             new_labels_renamed = []
 
             "Concaténation des infos de la légende"
             for ig, ug, og in zip(new_labels, new_sizes, new_units):
                 if ig == 'Surface allouée restante':
                     ig = ig + ' : ' + str(round(sum(obtain_all_data()[5]), 2)) + ' (m²)'
+                    new_labels_renamed.append(ig)
+                elif ig == 'Surface non allouée':
+                    ig = ig + ' : ' + str(round(obtain_all_data()[8], 2)) + ' (m²)'
                     new_labels_renamed.append(ig)
                 else:
                     ig = ig + ' : ' + str(ug) + ' (m²) / ' + str(og) + ' (u)'
@@ -214,14 +218,19 @@ class MainWindow:
             for autotext in autotexts:
                 autotext.set_bbox({'facecolor': 'white', 'edgecolor': 'white', 'alpha': 0.7})
 
-            '''Coloriage de la part restante en rouge pâle'''
-            label_to_color = {'Surface allouée restante': '#e3bcbc'}
+            '''Coloriage des parts de surface allouée restante et non-allouée'''
+            label_surface_allouee_restante_to_color = {'Surface allouée restante': '#e3bcbc'}
+            label_surface_non_allouee_restante_to_color = {'Surface non allouée': '#aaaaaa'}
             for wedge, label in zip(wedges, new_labels):
-                if label in label_to_color:
-                    wedge.set_facecolor(label_to_color[label])
+                if label in label_surface_allouee_restante_to_color:
+                    wedge.set_facecolor(label_surface_allouee_restante_to_color[label])
+                    wedge.set(hatch='///', edgecolor='grey')
+                elif label in label_surface_non_allouee_restante_to_color:
+                    wedge.set_facecolor(label_surface_non_allouee_restante_to_color[label])
+                    wedge.set(hatch='xxx', edgecolor='#e8e8e8')
 
             '''Ajout du cercle blanc du donut'''
-            self.circle = plt.Circle((0, 0), self.white_circle_radius, color='white', fc='white', linewidth=1.25)
+            self.circle = plt.Circle((0, 0), self.white_circle_radius, color='#e8e8e8', fc='white', linewidth=1.25)
             self.ax.add_artist(self.circle)
 
             axes.legend(wedges, labels=new_labels_renamed, loc='lower left', bbox_to_anchor=(0, 1.2, 0, 1.2))
@@ -255,6 +264,7 @@ class MainWindow:
             list_of_implanted_units_values = []
             list_of_surfaces_allouees_utilisees = []
             list_of_surfaces_alloues = []
+            surface_totale_non_allouee_calculation = []
             for descendants in widgets_values:
                 max_units_var = IntVar()
                 surface_restante = DoubleVar()
@@ -319,7 +329,10 @@ class MainWindow:
                 '''Agrégation en liste des surfaces utilisées'''
                 list_of_surfaces_allouees_utilisees.append(surface_allouee_utilisee)
 
-                self.surface_totale_non_allouee_var.set(str(round(self.surface_a_peupler_var.get()-(self.surface_a_peupler_var.get()*sum(list_of_percents)/100),2)) + ' m²')
+                surface_totale_non_allouee_calculation = round(self.surface_a_peupler_var.get()-(self.surface_a_peupler_var.get()*sum(list_of_percents)/100),2)
+
+                self.surface_totale_non_allouee_var.set(str(surface_totale_non_allouee_calculation) + ' m²')
+
 
                 surface_restante_var_label = selected_widget.nametowidget(descendants[10])
                 surface_restante_var_label['textvariable'] = surface_restante
@@ -350,8 +363,9 @@ class MainWindow:
             self.root.update()
             self.frame_graphique.update_idletasks()
 
-            return sum(list_of_surfaces), sum(
-                list_of_percents), list_of_surfaces, list_of_percents, list_of_typo_names, list_of_surfaces_restantes, list_of_implanted_units_values, list_of_surfaces_allouees_utilisees
+            return sum(list_of_surfaces), sum(list_of_percents), list_of_surfaces, list_of_percents,\
+                list_of_typo_names, list_of_surfaces_restantes, list_of_implanted_units_values,\
+                list_of_surfaces_allouees_utilisees, surface_totale_non_allouee_calculation
 
         def update_alpha_from_slider_value(slider):
 
@@ -418,7 +432,7 @@ class MainWindow:
 
             def delete_typologie():
 
-                """utilise le parent du bouton delete pour accéder à la frame à supprimer"""
+                """Utilise le parent du bouton delete pour accéder à la frame à supprimer"""
                 frame_to_delete = self.frame_typologie.nametowidget(new_delete_button.winfo_parent())
                 '''supprime la frame'''
                 frame_to_delete.destroy()
@@ -579,4 +593,4 @@ class MainWindow:
 
 
 if __name__ == '__main__':
-    MainWindow()
+    RepartitorWindow()

@@ -6,7 +6,7 @@ block_cipher = None
 
 a = Analysis(
     ['Repartiteur_Dynamique.py'],
-    pathex=['C:\\users\\jcuartero\\PycharmProjects\\CSV_SeparatorChange\\venv\\Lib\\site-packages'],
+    pathex=[],
     binaries=[],
     datas=[('Aguiles_Logo.png', '.')],
     hiddenimports=['pywintypes'],

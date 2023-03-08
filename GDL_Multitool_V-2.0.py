@@ -1,6 +1,8 @@
 import os
 import sys
 import tkinter.font
+import subprocess
+
 
 import time
 import tkinter.ttk
@@ -31,17 +33,6 @@ class App(Tk):
         # Initialisation de la fenêtre principale Tkinter et de ses variables de base
         Tk.__init__(self)
 
-        # Variable de texte à modifier suivant le survol des boutons et des labels
-        texte_informatif = StringVar()
-        texte_informatif.set("Survolez un élément pour en décrire les fonctions")
-        tabControl = tkinter.ttk.Notebook(self)
-        tab1 = Frame(tabControl)
-        tab2 = Frame(tabControl)
-        tabControl.add(tab1, text='Pipettes')
-        tabControl.add(tab2, text='Options')
-        tab2.rowconfigure(0, weight=1)
-        self.resizable(False,False)
-
         def resource_path(relative_path):
             """ Get absolute path to resource, works for dev and for PyInstaller """
             try:
@@ -51,6 +42,33 @@ class App(Tk):
                 base_path = os.path.abspath(".")
 
             return os.path.join(base_path, relative_path)
+
+        # Variable de texte à modifier suivant le survol des boutons et des labels
+        texte_informatif = StringVar()
+        texte_informatif.set("Survolez un élément pour en décrire les fonctions")
+        tabControl = tkinter.ttk.Notebook(self)
+        tab1 = Frame(tabControl)
+        tab2 = Frame(tabControl)
+        tab3 = Frame(tabControl)
+        tabControl.add(tab1, text='Pipettes')
+        tabControl.add(tab3, text='Répartiteur')
+        tabControl.add(tab2, text='Options')
+        tab2.rowconfigure(0, weight=1)
+        self.resizable(False, False)
+
+        self.repartitor_exe_path = resource_path('Repartiteur_Dynamique.exe')
+
+        def launch_repartitor():
+            subprocess.call('Repartiteur_Dynamique.exe')
+            pass
+
+        self.frame_repartiteur = LabelFrame(tab3, text='Répartiteur de Surfaces', padx=5, pady=5)
+        self.frame_repartiteur.pack(fill=BOTH, expand=1, padx=5, pady=5)
+        self.open_repartitor_button = Button(self.frame_repartiteur, text='Lancer le Répartiteur de Typologies de Surfaces', command=launch_repartitor)
+        self.open_repartitor_button.pack(fill=X, expand=1, padx=5, pady=5)
+
+
+
 
         self.frame_informative = LabelFrame(self, text="Informations")
         self.frame_informative.pack(fill=X, expand=True, padx=5, pady=5)
