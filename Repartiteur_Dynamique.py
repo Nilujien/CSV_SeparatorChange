@@ -422,7 +422,7 @@ class RepartitorWindow:
         self.surface_a_peupler_var.trace_add('write', lambda x, y, z: obtain_all_then_update())
 
         self.slider_alpha = Scale(self.root, from_=25, to=100, orient=HORIZONTAL,
-                                  command=update_alpha_from_slider_value, borderwidth=0)
+                                  command=update_alpha_from_slider_value, borderwidth=0, resolution=0.01)
         self.slider_alpha.set(100)
         self.slider_alpha.grid(row=4, column=0, columnspan=7, sticky='news')
 
@@ -566,9 +566,9 @@ class RepartitorWindow:
 
             typo_slider_percent = Scale(new_frame, from_=1.00, to=100.00, orient=HORIZONTAL,
                                         label="% de surface à peupler",
-                                        length=150, digits=2, command=lambda e: obtain_all_data())
+                                        length=130, resolution=0.1, command=lambda e: obtain_all_data())
             typo_slider_percent.grid(row=self.typologies_row_count, column=5, padx=5, pady=5, sticky='news')
-            typo_slider_percent.set(20.0)
+            typo_slider_percent.set(20.00)
             typo_slider_percent.bind("<MouseWheel>", on_mousewheel_slider)
             typo_slider_percent.bind("<ButtonRelease-1>", lambda x: obtain_all_then_update())
 
