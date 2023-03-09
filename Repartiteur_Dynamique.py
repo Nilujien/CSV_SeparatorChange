@@ -3,8 +3,9 @@ import os
 import sys
 from tkinter import *
 from tkinter import font
-
+import webbrowser
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.backends.backend_tkagg import *
 from matplotlib.figure import Figure
 from PIL import ImageTk, Image
@@ -27,7 +28,7 @@ class RepartitorWindow:
 
             return os.path.join(base_path, relative_path)
 
-        Logo = resource_path("Aguiles_Logo.png")
+        application_logo = resource_path("Aguiles_Logo.png")
 
         '''ROOT ET CONFIGURATION'''
 
@@ -71,15 +72,34 @@ class RepartitorWindow:
 
         '''IMAGE DU LOGO (à passer en ressource dynamique)'''
 
-        self.img = ImageTk.PhotoImage(Image.open(Logo), master=self.root)
+        self.img_logo = ImageTk.PhotoImage(Image.open(application_logo), master=self.root)
 
         '''FRAME LOGO'''
-        self.frame_logo = LabelFrame(self.root, text='Logo')
+        self.frame_logo = Frame(self.root)
         self.frame_logo.grid(row=0, column=0, sticky='news', ipadx=self.general_padx, ipady=self.general_pady,
                              padx=self.general_padx, pady=self.general_pady)
-        self.label_logo_u = Label(self.frame_logo, image=self.img)
-        self.label_logo_u.image = self.img
-        self.label_logo_u.pack(side=LEFT, fill=BOTH)
+        self.label_logo_u = Label(self.frame_logo, image=self.img_logo)
+        self.label_logo_u.image = self.img_logo
+        self.label_logo_u.grid(row=0, column=0, sticky='news', pady=5, padx=5)
+
+        def open_about_window():
+            def mailto():
+
+                webbrowser.open('mailto:?to=' + 'j.cuartero@geniedeslieux.fr' + '&subject=' + 'Au sujet de ARTS 32000 :' + '&body' + 'Bonjour')
+            popup = Toplevel(self.root)
+            popup.title("A propos de ce logiciel")
+            informative_text = Label(popup, cursor='hand2' ,justify='left', text="Le Répartiteur de Typologies de Sufaces (RTS) Alan Repartiteur 32000 \n"
+                                                 " est le fruit d'une étroite collaboration entre Aghiles Oughlis, Alan Marie et Julien Cuartero. \n\n"
+                                                 "Afin de simplifier la méthode empirique de remplissage d'une surface par différentes typologies d'espaces,\n"
+                                                 " ce RTS open-source est mit à votre disposition.\n\n"
+                                                 "Créez autant de typologies d'espaces que vous le souhaitez,\n"
+                                                 " puis ajustez les sliders de pourcentage pour réussir un sans faute de répartition",
+                                     bg='white')
+            informative_text.bind('<Button-1>', lambda e: mailto())
+            informative_text.pack(pady=5, padx=5)
+
+        self.button_logo_about = Button(self.frame_logo, text='En savoir plus', width=30, command=open_about_window)
+        self.button_logo_about.grid(row=0, column=1, sticky='new', padx=5, pady=5)
 
         '''SELECT ALL IN ENTRY ON FOCUS'''
 
@@ -170,6 +190,7 @@ class RepartitorWindow:
         self.label_surface_totale_restante_view.grid(row=0, column=10, sticky='news', ipadx=self.general_padx,
                                                      ipady=self.general_pady)
 
+
         '''UPDATE DE LA TARTE'''
 
         def update_pie_chart():
@@ -179,6 +200,16 @@ class RepartitorWindow:
             '''Valeurs des tranches de la tourte'''
             new_sizes = obtain_all_data()[7] + [sum(obtain_all_data()[5])] + [obtain_all_data()[8]]
             new_units = obtain_all_data()[6] + [''] + ['']
+            new_units_renamed = []
+
+            '''Formatage des unités implantées pour affichage sur la tarte'''
+
+            for i in new_units:
+                if i == '':
+                    new_units_renamed.append('')
+                else:
+                    i = str(i) + ' [u]'
+                    new_units_renamed.append(i)
 
             '''Nouveaux Labels'''
             new_labels = obtain_all_data()[4] + ['Surface allouée restante'] + ['Surface non allouée']
@@ -208,15 +239,23 @@ class RepartitorWindow:
             axes.clear()
             axes_2.clear()
 
+
+
             '''DEFINITION DE LA NOUVELLE TARTE'''
 
-            wedges, texts, autotexts = axes.pie(new_sizes, radius=self.pie_radius, autopct='%1.1f%%', normalize=True,
-                                                shadow=False,
+            wedges, texts, autotexts = axes.pie(new_sizes, labels=new_units_renamed, labeldistance=1, radius=self.pie_radius, autopct='%.1f%%',
+                                                normalize=True, shadow=False,
                                                 colors=["#bce3e0", "#6bb4da", "#547cda", "#324e98", "#badad7"],
                                                 frame=False)
 
             for autotext in autotexts:
                 autotext.set_bbox({'facecolor': 'white', 'edgecolor': 'white', 'alpha': 0.7})
+                autotext.set_size(10)
+
+            for text in texts:
+                text.set_bbox({'facecolor': '#e0e0e0', 'edgecolor': '#919191', 'alpha': 1})
+                text.set_size(8)
+
 
             '''Coloriage des parts de surface allouée restante et non-allouée'''
             label_surface_allouee_restante_to_color = {'Surface allouée restante': '#e3bcbc'}
@@ -233,7 +272,7 @@ class RepartitorWindow:
             self.circle = plt.Circle((0, 0), self.white_circle_radius, color='#e8e8e8', fc='white', linewidth=1.25)
             self.ax.add_artist(self.circle)
 
-            axes.legend(wedges, labels=new_labels_renamed, loc='lower left', bbox_to_anchor=(0, 1.2, 0, 1.2))
+            axes.legend(wedges, labels=new_labels_renamed, loc='lower left', bbox_to_anchor=(0, 1.2, 1, 0), fontsize=10)
 
             '''Need to set up a color set, that can respond to any number of typologies. A base color being
             declined through iterative mathematics and RGB values '''
@@ -396,7 +435,7 @@ class RepartitorWindow:
         '''FIGURES MATPLOTLIB'''
 
         self.fig = Figure(figsize=(4, 4), tight_layout=True)
-        self.fig_2 = Figure(figsize=(3, 5))
+        self.fig_2 = Figure(figsize=(3, 5), tight_layout=True)
 
         self.ax = self.fig.add_subplot(111, label='Axes')
         self.ax_2 = self.fig_2.add_subplot(111)

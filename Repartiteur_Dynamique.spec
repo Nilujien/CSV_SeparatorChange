@@ -8,7 +8,7 @@ a = Analysis(
     ['Repartiteur_Dynamique.py'],
     pathex=[],
     binaries=[],
-    datas=[('Aguiles_Logo.png', '.')],
+    datas=[('Aguiles_Logo.png', '.'), ('GDL_Couteau_Suisse.ico', '.')],
     hiddenimports=['pywintypes'],
     hookspath=[],
     hooksconfig={},
@@ -41,4 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['GDL_Couteau_Suisse.ico'],
 )
